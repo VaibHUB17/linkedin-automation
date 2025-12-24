@@ -135,32 +135,31 @@ func ClickConnectButton(page *rod.Page) error {
 
 // detectConnectFlow detects which connection flow is available on the profile page
 func detectConnectFlow(page *rod.Page) (*rod.Element, string) {
-	// Try to find direct Connect or Add button first
+	// Try to find direct Connect/Invite button first
+	// LinkedIn uses dynamic aria-labels like "Invite PIYASH RASTOGI to connect"
+	// So we use contains matching (*=) instead of exact match
 	connectSelectors := []string{
-		"button:has-text('Add')",
-		"button[aria-label*='Add']",
-		"button:has-text('Connect')",
-		"button[aria-label='Connect']",
-		"button.artdeco-button--primary:has-text('Connect')",
-		"button.artdeco-button--primary:has-text('Add')",
-		"button.pvs-profile-actions__action:has-text('Connect')",
-		"button.pvs-profile-actions__action:has-text('Add')",
+		"div.pvs-profile-actions button[aria-label*='connect']",
+		"div.pvs-profile-actions button[aria-label*='Invite']",
+		"button[aria-label*='connect']",
+		"button[aria-label*='Invite']",
+		"button[data-control-name='connect']",
+		"button.pvs-profile-actions__action[aria-label*='connect']",
 	}
 	
 	for _, selector := range connectSelectors {
-		logger.Debug("Checking for direct Connect/Add button", "selector", selector)
+		logger.Debug("Checking for direct Connect/Invite button", "selector", selector)
 		element, err := page.Timeout(3 * time.Second).Element(selector)
 		if err == nil {
-			logger.Debug("Found direct Connect/Add button")
+			logger.Debug("Found direct Connect/Invite button")
 			return element, "direct"
 		}
 	}
 	
 	// Try to find More button (for profiles where Connect is in More menu)
 	moreSelectors := []string{
-		"button[aria-label='More actions']",
 		"button[aria-label*='More']",
-		"button:has-text('More')",
+		"button.artdeco-dropdown__trigger",
 		"button.artdeco-dropdown__trigger--placement-bottom",
 	}
 	
@@ -211,20 +210,18 @@ func clickConnectFromMoreMenu(page *rod.Page, moreBtn *rod.Element) error {
 	}
 	
 	logger.Debug("More button clicked, waiting for dropdown")
-	time.Sleep(stealth.RandomDelay(500*time.Millisecond, 1000*time.Millisecond))
 	
-	// Find and click Connect or Add option from dropdown
+	// Wait for dropdown to stabilize
+	time.Sleep(stealth.RandomDelay(800*time.Millisecond, 1200*time.Millisecond))
+	
+	// Find and click Connect option from dropdown
+	// Use text matching for dropdown items as they render actual text
 	connectSelectors := []string{
 		"div[role='menu'] span:has-text('Connect')",
-		"div[role='menu'] span:has-text('Add')",
-		"li:has-text('Connect')",
-		"li:has-text('Add')",
+		"div.artdeco-dropdown__content span:has-text('Connect')",
 		"div.artdeco-dropdown__item:has-text('Connect')",
-		"div.artdeco-dropdown__item:has-text('Add')",
-		"button:has-text('Connect')",
-		"button:has-text('Add')",
-		"span.display-flex:has-text('Connect')",
-		"span.display-flex:has-text('Add')",
+		"li[role='menuitem']:has-text('Connect')",
+		"button[aria-label*='connect']",
 	}
 	
 	var connectOption *rod.Element

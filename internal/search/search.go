@@ -226,7 +226,8 @@ func ExtractProfileURLs(page *rod.Page) ([]ProfileInfo, error) {
 	}
 
 	// Step 6: Extract ALL profile links from page
-	links, err := page.Elements("a[href*='/in/']")
+	// Use prefix match for cleaner selection
+	links, err := page.Elements("a[href^='https://www.linkedin.com/in/']")
 	if err != nil || len(links) == 0 {
 		return nil, fmt.Errorf("no profile links found: %w", err)
 	}
@@ -235,7 +236,7 @@ func ExtractProfileURLs(page *rod.Page) ([]ProfileInfo, error) {
 
 	seen := make(map[string]bool)
 	var profiles []ProfileInfo
-	const maxProfiles = 50 // Increased limit
+	const maxProfiles = 10 // Profile extraction limit
 
 	logger.Debug("Starting profile extraction from links", "total_links", len(links))
 
@@ -245,23 +246,32 @@ func ExtractProfileURLs(page *rod.Page) ([]ProfileInfo, error) {
 			logger.Info("Reached profile extraction limit", "limit", maxProfiles, "processed", i+1)
 			break
 		}
-		href, err := link.Attribute("href")
-		if err != nil || href == nil {
+		
+		// Use Property() instead of Attribute() - LinkedIn hides href from attributes
+		hrefProp, err := link.Property("href")
+		if err != nil {
 			if i < 10 { // Log first few failures only
-				logger.Debug("Failed to get href attribute", "index", i, "error", err)
+				logger.Debug("Failed to get href property", "index", i, "error", err)
 			}
 			continue
 		}
 
-		profileURL := cleanProfileURL(*href)
+		profileURL := cleanProfileURL(hrefProp.String())
+		
+		// Debug log first successful extraction to verify fix
+		if i == 0 {
+			logger.Info("Sample href property", "href", profileURL)
+		}
 
 		// STRICT validation - must be a proper LinkedIn profile URL
 		if !strings.HasPrefix(profileURL, "https://www.linkedin.com/in/") {
+			logger.Debug("Skipping invalid profile URL", "url", profileURL, "index", i)
 			continue
 		}
 
 		// Skip duplicates
 		if seen[profileURL] {
+			logger.Debug("Skipping duplicate profile URL", "url", profileURL, "index", i)
 			continue
 		}
 		seen[profileURL] = true
@@ -270,12 +280,13 @@ func ExtractProfileURLs(page *rod.Page) ([]ProfileInfo, error) {
 		exists, err := storage.ProfileExists(profileURL)
 		if err != nil {
 			logger.Warn("Failed to check profile existence", "url", profileURL, "error", err)
+			// Don't skip on error - continue to add the profile
 		} else if exists {
-			logger.Debug("Profile already exists in database", "url", profileURL)
+			logger.Info("Profile already exists in database, skipping", "url", profileURL, "index", i)
 			continue
 		}
 
-		logger.Debug("Extracted profile URL", "url", profileURL)
+		logger.Info("Adding new profile", "url", profileURL, "index", i)
 
 		profiles = append(profiles, ProfileInfo{
 			URL: profileURL,
