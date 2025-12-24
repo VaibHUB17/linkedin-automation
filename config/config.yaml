@@ -1,0 +1,61 @@
+linkedin:
+  email: ${LINKEDIN_EMAIL}
+  password: ${LINKEDIN_PASSWORD}
+
+search:
+  job_titles:
+    - "Software Engineer"
+    - "Backend Engineer"
+    - "DevOps Engineer"
+  companies:
+    - "Google"
+    - "Microsoft"
+    - "Amazon"
+  locations:
+    - "Banglore, India"
+    - "San Francisco, CA"
+    - "Remote"
+    - "New York, NY"
+  keywords:
+    - "fullstack"
+  max_results: 100
+  max_pages: 5
+
+connection:
+  daily_limit: 50
+  note_template: "Hi {{name}}, I noticed we share similar interests in {{interest}}. I'd love to connect and exchange ideas!"
+  min_delay_seconds: 120
+  max_delay_seconds: 300
+  personalization_rate: 0.8  # 80% of requests include personalized note
+
+messaging:
+  follow_up_template: "Thanks for connecting, {{name}}! I appreciate you taking the time. Looking forward to staying in touch."
+  delay_after_acceptance_hours: 24
+  min_delay_seconds: 300
+  max_delay_seconds: 600
+
+stealth:
+  min_action_delay_ms: 1000
+  max_action_delay_ms: 5000
+  scroll_speed_px: 100
+  typing_speed_ms: 150
+  business_hours_only: true
+  business_hours:
+    start: 9   # 9 AM
+    end: 18    # 6 PM
+  work_days:
+    - "Monday"
+    - "Tuesday"
+    - "Wednesday"
+    - "Thursday"
+    - "Friday"
+  typo_rate: 0.02  # 2% chance of typo per character
+  headless: false  # Run with visible browser
+
+database:
+  path: ${DATABASE_PATH:./linkedin.db}
+
+logging:
+  level: ${LOG_LEVEL:info}
+  to_file: ${LOG_TO_FILE:true}
+  file_path: ./logs/linkedin-automation.log
