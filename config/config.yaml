@@ -4,9 +4,7 @@ linkedin:
 
 search:
   job_titles:
-    - "Software Engineer"
-    - "Backend Engineer"
-    - "DevOps Engineer"
+    - "software developer"
   companies:
     - "Google"
     - "Microsoft"
@@ -17,13 +15,13 @@ search:
     - "Remote"
     - "New York, NY"
   keywords:
-    - "fullstack"
-  max_results: 100
-  max_pages: 5
+    - ""
+  max_results: 3
+  max_pages: 1
 
 connection:
   daily_limit: 50
-  note_template: "Hi {{name}}, I noticed we share similar interests in {{interest}}. I'd love to connect and exchange ideas!"
+  note_template: "Hi {{name}}, I noticed we share similar interests. I'd love to connect and exchange ideas!"
   min_delay_seconds: 120
   max_delay_seconds: 300
   personalization_rate: 0.8  # 80% of requests include personalized note
